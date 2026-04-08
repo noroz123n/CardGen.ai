@@ -2,7 +2,7 @@
 
 A free, open-source card generator for Hebrew word-guessing party games.
 
-🌐 **Live site:** https://noroz123n.github.io/cardgen.ai
+🌐 **Live site:** [https://noroz123n.github.io/cardgen.ai](https://noroz123n.github.io/CardGen.ai/)
 
 ## Features
 
