@@ -17,7 +17,7 @@ A free, open-source card generator for Hebrew word-guessing party games.
 
 ## How to use
 
-Just open `CardGenAI.html` in any browser. No build step, no dependencies, no server.
+Just open `index.html` in any browser. No build step, no dependencies, no server.
 
 ## Hosting on GitHub Pages
 
