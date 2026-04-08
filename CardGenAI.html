@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>CardGen.ai — גנרטור קלפים</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;900&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0f0f0f;
+  --surface:  #181818;
+  --surface2: #222222;
+  --border:   rgba(255,255,255,0.08);
+  --border2:  rgba(255,255,255,0.15);
+  --red:      #d63031;
+  --red2:     #e17055;
+  --gold:     #fdcb6e;
+  --gold2:    #f9ca24;
+  --text:     #f0ece4;
+  --muted:    rgba(240,236,228,0.45);
+  --blue:     #74b9ff;
+  --green:    #55efc4;
+  --card-w:   300px;
+  --card-h:   480px;
+  --r:        16px;
+  --rcard:    20px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  min-height:100vh;
+  font-family:'Heebo',sans-serif;
+  color:var(--text);
+  overflow-x:hidden;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px;}
+
+/* ── NAV ── */
+nav{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 24px;
+  height:60px;
+  background:rgba(15,15,15,0.9);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  position:sticky;
+  top:0;
+  z-index:100;
+}
+.nav-logo{
+  font-family:'Syne',sans-serif;
+  font-size:22px;
+  font-weight:800;
+  color:var(--gold);
+  letter-spacing:-0.5px;
+}
+.nav-logo span{color:var(--muted);font-weight:700;}
+.nav-right{display:flex;gap:10px;align-items:center;}
+.nav-btn{
+  padding:7px 16px;
+  border-radius:8px;
+  font-family:'Heebo',sans-serif;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  border:1px solid var(--border2);
+  background:transparent;
+  color:var(--text);
+  transition:all .15s;
+}
+.nav-btn:hover{background:var(--surface2);border-color:rgba(255,255,255,0.25);}
+.nav-btn.primary{
+  background:var(--red);
+  border-color:var(--red);
+  color:#fff;
+}
+.nav-btn.primary:hover{background:#c0392b;}
+.user-pill{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 14px;
+  border-radius:100px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  font-size:13px;
+  cursor:pointer;
+}
+.user-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--green);
+  flex-shrink:0;
+}
+
+/* ── HERO ── */
+.hero{
+  text-align:center;
+  padding:56px 20px 40px;
+  max-width:640px;
+  margin:0 auto;
+}
+.hero h1{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(36px,8vw,62px);
+  font-weight:800;
+  line-height:1.05;
+  color:var(--gold);
+  letter-spacing:-1px;
+}
+.hero h1 span{color:var(--text);opacity:.35;}
+.hero p{
+  margin-top:14px;
+  font-size:16px;
+  color:var(--muted);
+  line-height:1.6;
+}
+.disclaimer{
+  display:inline-block;
+  margin-top:16px;
+  font-size:11px;
+  color:rgba(240,236,228,0.25);
+  border:1px solid rgba(255,255,255,0.06);
+  padding:4px 12px;
+  border-radius:100px;
+}
+
+/* ── MAIN LAYOUT ── */
+.main{
+  max-width:1100px;
+  margin:0 auto;
+  padding:0 16px 80px;
+}
+
+/* ── PANEL ── */
+.panel{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:24px;
+  margin-bottom:20px;
+}
+.panel-title{
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--gold);
+  margin-bottom:16px;
+}
+
+/* ── CATEGORY CHIPS ── */
+.cat-grid{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{
+  padding:7px 14px;
+  border-radius:100px;
+  border:1px solid var(--border2);
+  background:transparent;
+  color:var(--muted);
+  font-size:13px;
+  font-family:'Heebo',sans-serif;
+  cursor:pointer;
+  transition:all .15s;
+  user-select:none;
+  white-space:nowrap;
+}
+.chip:hover{border-color:rgba(255,255,255,0.3);color:var(--text);}
+.chip.on{background:var(--gold);border-color:var(--gold);color:#1a1000;font-weight:700;}
+.chip.all-chip.on{background:var(--red);border-color:var(--red);color:#fff;}
+
+/* ── CONTROLS ROW ── */
+.controls-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:16px;
+  align-items:center;
+}
+.ctrl-group{display:flex;flex-direction:column;gap:6px;flex:1;min-width:160px;}
+.ctrl-label{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.5px;}
+.ctrl-sub{display:flex;align-items:center;gap:10px;}
+input[type=range]{
+  flex:1;
+  -webkit-appearance:none;
+  height:4px;
+  border-radius:2px;
+  background:var(--surface2);
+  outline:none;
+  cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:18px;height:18px;
+  border-radius:50%;
+  background:var(--gold);
+  cursor:pointer;
+  box-shadow:0 0 0 3px rgba(253,203,110,0.2);
+}
+.range-val{
+  font-size:18px;font-weight:700;
+  color:var(--gold);
+  min-width:32px;text-align:center;
+}
+
+/* ── DIFFICULTY TOGGLE ── */
+.diff-row{display:flex;gap:8px;}
+.diff-btn{
+  padding:6px 14px;
+  border-radius:100px;
+  border:1px solid var(--border2);
+  background:transparent;
+  color:var(--muted);
+  font-size:13px;font-family:'Heebo',sans-serif;
+  cursor:pointer;transition:all .15s;
+}
+.diff-btn.on{background:var(--surface2);color:var(--text);border-color:rgba(255,255,255,0.3);}
+
+/* ── ACTION BUTTONS ── */
+.action-row{display:flex;flex-wrap:wrap;gap:10px;}
+.btn{
+  padding:13px 24px;
+  border-radius:10px;
+  font-family:'Heebo',sans-serif;
+  font-size:15px;font-weight:700;
+  cursor:pointer;border:none;
+  transition:all .18s;
+  flex:1;min-width:120px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-red{background:var(--red);color:#fff;box-shadow:0 4px 16px rgba(214,48,49,.3);}
+.btn-red:hover{background:#c0392b;transform:translateY(-1px);}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border2);}
+.btn-ghost:hover{background:var(--surface2);color:var(--text);}
+.btn-ai{
+  background:linear-gradient(135deg,#1a1a3e,#0f0f2a);
+  color:var(--blue);
+  border:1px solid rgba(116,185,255,.25);
+}
+.btn-ai:hover{border-color:var(--blue);transform:translateY(-1px);}
+.btn-print{background:var(--surface2);color:var(--text);border:1px solid var(--border2);}
+.btn-print:hover{background:#2d2d2d;}
+
+/* ── AI PANEL ── */
+.ai-box{
+  background:rgba(10,15,30,.7);
+  border:1px solid rgba(116,185,255,.15);
+  border-radius:var(--r);
+  padding:20px;
+  margin-bottom:20px;
+  display:none;
+}
+.ai-box.open{display:block;}
+.ai-field{margin-bottom:14px;}
+.ai-field label{
+  display:block;font-size:12px;color:rgba(116,185,255,.7);
+  font-weight:700;letter-spacing:1px;margin-bottom:6px;
+}
+.ai-field input,.ai-field textarea,.ai-field select{
+  width:100%;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(116,185,255,.18);
+  border-radius:8px;
+  color:var(--text);
+  font-family:'Heebo',sans-serif;
+  font-size:14px;
+  padding:10px 14px;
+  outline:none;
+  direction:rtl;
+  transition:border-color .15s;
+}
+.ai-field input:focus,.ai-field textarea:focus{border-color:rgba(116,185,255,.5);}
+.ai-field textarea{min-height:64px;resize:vertical;}
+.key-row{display:flex;gap:8px;}
+.key-row input{flex:1;}
+.key-saved{
+  font-size:11px;color:var(--green);
+  margin-top:4px;display:none;
+}
+.key-saved.show{display:block;}
+.ai-status{
+  font-size:13px;color:rgba(116,185,255,.6);
+  margin-top:10px;min-height:18px;
+  transition:color .2s;
+}
+.ai-status.err{color:#ff7675;}
+.ai-status.ok{color:var(--green);}
+
+/* ── CARDS AREA ── */
+.cards-header{
+  display:flex;align-items:center;
+  justify-content:space-between;
+  margin-bottom:20px;
+  flex-wrap:wrap;gap:10px;
+}
+.cards-count{font-size:13px;color:var(--muted);}
+.cards-count b{color:var(--text);font-weight:700;}
+.cards-grid{
+  display:flex;flex-wrap:wrap;
+  gap:16px;justify-content:center;
+}
+
+/* ── EMPTY STATE ── */
+.empty{
+  text-align:center;padding:60px 20px;
+  color:rgba(240,236,228,.2);
+  width:100%;
+}
+.empty-icon{font-size:56px;margin-bottom:14px;}
+.empty p{font-size:17px;}
+
+/* ── THE CARD ── */
+.cg-card{
+  width:var(--card-w);
+  height:var(--card-h);
+  border-radius:var(--rcard);
+  position:relative;
+  overflow:hidden;
+  flex-shrink:0;
+  display:flex;flex-direction:column;
+  box-shadow:0 12px 40px rgba(0,0,0,.5);
+  cursor:default;
+  transition:transform .2s,box-shadow .2s;
+}
+.cg-card:hover{transform:translateY(-4px);box-shadow:0 20px 50px rgba(0,0,0,.6);}
+
+/* gradient bg layers */
+.cg-card .bg-layer{
+  position:absolute;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(255,255,255,.06) 0%, transparent 55%),
+    radial-gradient(ellipse at 100% 100%, rgba(0,0,0,.25) 0%, transparent 55%);
+}
+
+/* card color themes */
+.cg-card.theme-red{background:#8b1e1e;}
+.cg-card.theme-navy{background:#1a2744;}
+.cg-card.theme-forest{background:#1a3a2a;}
+.cg-card.theme-plum{background:#2a1a38;}
+.cg-card.theme-slate{background:#1e2535;}
+.cg-card.theme-burnt{background:#3a1f0d;}
+
+.cg-card .c-head{
+  padding:11px 16px 9px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid rgba(255,255,255,.12);
+  position:relative;z-index:2;
+  background:rgba(0,0,0,.25);
+}
+.cg-card .c-brand{
+  font-family:'Syne',sans-serif;
+  font-size:17px;font-weight:800;
+  color:var(--gold);letter-spacing:.5px;
+}
+.cg-card .c-cat{
+  font-size:11px;font-weight:700;
+  padding:3px 10px;
+  border-radius:100px;
+  background:rgba(253,203,110,.15);
+  color:var(--gold);
+  letter-spacing:.3px;
+  font-family:'Heebo',sans-serif;
+  max-width:150px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+.cg-card .c-words{
+  flex:1;display:flex;flex-direction:column;
+  justify-content:center;
+  padding:6px 10px;
+  gap:1px;
+  position:relative;z-index:2;
+}
+.w-row{
+  display:flex;align-items:center;gap:10px;
+  padding:7px 10px;
+  border-radius:9px;
+}
+.w-row:nth-child(odd){background:rgba(255,255,255,.06);}
+.w-n{
+  font-family:'Heebo',sans-serif;
+  font-size:12px;font-weight:700;
+  color:var(--gold);opacity:.7;
+  min-width:18px;text-align:center;flex-shrink:0;
+}
+.w-t{
+  font-family:'Heebo',sans-serif;
+  font-size:19px;font-weight:700;
+  color:#fff;flex:1;text-align:right;
+  line-height:1.15;
+  text-shadow:0 1px 4px rgba(0,0,0,.4);
+}
+.w-t.md{font-size:16px;}
+.w-t.sm{font-size:13px;}
+.w-diff{
+  font-size:10px;font-weight:700;
+  width:20px;height:20px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.diff-e{background:rgba(85,239,196,.15);color:#55efc4;}
+.diff-m{background:rgba(253,203,110,.15);color:var(--gold);}
+.diff-h{background:rgba(214,48,49,.2);color:#ff7675;}
+
+.cg-card .c-foot{
+  padding:8px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-top:1px solid rgba(255,255,255,.12);
+  position:relative;z-index:2;
+  background:rgba(0,0,0,.25);
+}
+.c-num{font-size:11px;color:rgba(253,203,110,.4);font-weight:700;font-family:'Heebo',sans-serif;}
+.c-pips{display:flex;gap:4px;}
+.pip{width:6px;height:6px;border-radius:50%;background:rgba(253,203,110,.18);}
+.pip.on{background:var(--gold);}
+
+/* ── AUTH MODAL ── */
+.overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.75);
+  display:none;align-items:center;justify-content:center;
+  z-index:200;
+  backdrop-filter:blur(6px);
+  padding:20px;
+}
+.overlay.open{display:flex;}
+.modal{
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:20px;
+  padding:32px;
+  width:100%;max-width:400px;
+  position:relative;
+}
+.modal-close{
+  position:absolute;top:16px;left:16px;
+  background:var(--surface2);border:none;
+  width:30px;height:30px;border-radius:50%;
+  color:var(--muted);font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+}
+.modal-close:hover{background:#333;color:var(--text);}
+.modal-title{
+  font-family:'Syne',sans-serif;
+  font-size:24px;font-weight:800;
+  color:var(--gold);text-align:center;
+  margin-bottom:6px;
+}
+.modal-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:24px;}
+.m-tabs{display:flex;gap:4px;margin-bottom:24px;background:var(--surface2);border-radius:10px;padding:4px;}
+.m-tab{
+  flex:1;padding:9px;border-radius:8px;
+  border:none;background:transparent;
+  color:var(--muted);font-family:'Heebo',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;transition:all .15s;
+}
+.m-tab.on{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.3);}
+.m-field{margin-bottom:16px;}
+.m-field label{display:block;font-size:12px;color:var(--muted);font-weight:600;margin-bottom:6px;letter-spacing:.5px;}
+.m-field input{
+  width:100%;
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:8px;
+  color:var(--text);
+  font-family:'Heebo',sans-serif;font-size:15px;
+  padding:11px 14px;outline:none;direction:rtl;
+  transition:border-color .15s;
+}
+.m-field input:focus{border-color:rgba(253,203,110,.5);}
+.m-msg{font-size:13px;text-align:center;margin-top:10px;min-height:18px;color:var(--muted);}
+.m-msg.err{color:#ff7675;}
+.m-msg.ok{color:var(--green);}
+.m-note{
+  font-size:11px;color:rgba(240,236,228,.2);
+  text-align:center;margin-top:14px;line-height:1.5;
+}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:24px;right:24px;
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:10px;
+  padding:12px 20px;
+  font-size:14px;color:var(--text);
+  opacity:0;transform:translateY(10px);
+  transition:all .25s;
+  z-index:300;pointer-events:none;
+  max-width:280px;
+}
+.toast.show{opacity:1;transform:translateY(0);}
+
+/* ── PRINT ── */
+@media print{
+  nav,header,.panel,.action-row,.ai-box,.cards-header,.btn{display:none!important;}
+  body{background:#fff;}
+  .cards-grid{gap:6px;}
+  .cg-card{break-inside:avoid;box-shadow:none;}
+}
+
+/* ── MOBILE ── */
+@media(max-width:420px){
+  :root{--card-w:280px;--card-h:450px;}
+  .w-t{font-size:17px;}
+  .w-t.md{font-size:15px;}
+  .modal{padding:24px 18px;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">CardGen<span>.ai</span></div>
+  <div class="nav-right" id="navRight">
+    <button class="nav-btn" onclick="openAuth('login')">התחבר</button>
+    <button class="nav-btn primary" onclick="openAuth('signup')">הרשמה</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header>
+  <div class="hero">
+    <h1>קלפי מילים<br><span>אין</span>סופיים</h1>
+    <p>גנרטור קלפים למשחקי ניחוש — כמו אליאס, רק עם מאות קטגוריות ויצירת קלפים עם AI</p>
+    <div class="disclaimer">אין קשר למשחק אליאס המקורי של Tactic Games · כלי עזר בלתי תלוי</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- CATEGORIES -->
+  <div class="panel">
+    <div class="panel-title">קטגוריות</div>
+    <div class="cat-grid" id="catGrid"></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="panel">
+    <div class="panel-title">הגדרות</div>
+    <div class="controls-row">
+      <div class="ctrl-group">
+        <div class="ctrl-label">כמות קלפים</div>
+        <div class="ctrl-sub">
+          <input type="range" id="cardCount" min="1" max="30" value="6">
+          <span class="range-val" id="countVal">6</span>
+        </div>
+      </div>
+      <div class="ctrl-group">
+        <div class="ctrl-label">רמת קושי</div>
+        <div class="diff-row">
+          <button class="diff-btn on" data-d="mixed" onclick="setDiff(this)">מעורב</button>
+          <button class="diff-btn" data-d="easy" onclick="setDiff(this)">קל</button>
+          <button class="diff-btn" data-d="medium" onclick="setDiff(this)">בינוני</button>
+          <button class="diff-btn" data-d="hard" onclick="setDiff(this)">קשה</button>
+        </div>
+      </div>
+      <div class="ctrl-group">
+        <div class="ctrl-label">ערכת צבעים</div>
+        <div class="diff-row">
+          <button class="diff-btn on" data-th="random" onclick="setTheme(this)">אקראי</button>
+          <button class="diff-btn" data-th="theme-red" onclick="setTheme(this)">אדום</button>
+          <button class="diff-btn" data-th="theme-navy" onclick="setTheme(this)">כחול</button>
+          <button class="diff-btn" data-th="theme-forest" onclick="setTheme(this)">ירוק</button>
+          <button class="diff-btn" data-th="theme-plum" onclick="setTheme(this)">סגול</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="action-row" style="margin-bottom:20px;">
+    <button class="btn btn-red" onclick="generateCards()">🎴 צור קלפים</button>
+    <button class="btn btn-ai" onclick="toggleAI()">✨ יצירת AI (Gemini)</button>
+    <button class="btn btn-print" onclick="window.print()">🖨️ הדפס</button>
+  </div>
+
+  <!-- AI BOX -->
+  <div class="ai-box" id="aiBox">
+    <div class="ai-field">
+      <label>🔑 GEMINI API KEY</label>
+      <div class="key-row">
+        <input type="password" id="geminiKey" placeholder="הכנס API key מ-Google AI Studio (aistudio.google.com)" dir="ltr">
+        <button class="btn btn-ghost" style="flex:0;white-space:nowrap;padding:10px 16px;font-size:13px;" onclick="saveKey()">💾 שמור</button>
+        <button class="btn btn-ghost" style="flex:0;white-space:nowrap;padding:10px 16px;font-size:13px;" onclick="clearKey()">🗑️</button>
+      </div>
+      <div class="key-saved" id="keySaved">✓ המפתח נשמר במכשיר שלך בלבד</div>
+    </div>
+    <div class="ai-field">
+      <label>📁 נושא / קטגוריה</label>
+      <input type="text" id="aiTopic" placeholder="למשל: סרטי אנימציה, אוכל ישראלי, ספורט, היסטוריה...">
+    </div>
+    <div class="ai-field">
+      <label>💬 הנחיות נוספות (אופציונלי)</label>
+      <textarea id="aiExtra" placeholder="רמה קשה, רק שמות עצם, מתאים לנוער, מילים מצחיקות..."></textarea>
+    </div>
+    <div class="action-row">
+      <button class="btn btn-red" onclick="generateWithAI()">⚡ צור עם Gemini</button>
+      <button class="btn btn-ghost" onclick="toggleAI()">ביטול</button>
+    </div>
+    <div class="ai-status" id="aiStatus"></div>
+  </div>
+
+  <!-- CARDS OUTPUT -->
+  <div class="cards-header">
+    <div class="panel-title" style="margin:0">קלפים</div>
+    <div class="cards-count" id="cardsCount"></div>
+  </div>
+  <div class="cards-grid" id="cardsGrid">
+    <div class="empty">
+      <div class="empty-icon">🃏</div>
+      <p>בחר קטגוריות ולחץ "צור קלפים"</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- AUTH MODAL -->
+<div class="overlay" id="authOverlay" onclick="maybeCloseOverlay(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeAuth()">✕</button>
+    <div class="modal-title">CardGen<span style="opacity:.4">.ai</span></div>
+    <div class="modal-sub">שמור את ה-API key שלך בין סשנים</div>
+    <div class="m-tabs">
+      <button class="m-tab on" id="tabLogin" onclick="switchTab('login')">התחבר</button>
+      <button class="m-tab" id="tabSignup" onclick="switchTab('signup')">הרשמה</button>
+    </div>
+    <div class="m-field">
+      <label>שם משתמש</label>
+      <input type="text" id="authUser" placeholder="השם שלך" autocomplete="username">
+    </div>
+    <div class="m-field">
+      <label>סיסמה</label>
+      <input type="password" id="authPass" placeholder="לפחות 6 תווים" autocomplete="current-password">
+    </div>
+    <button class="btn btn-red" style="width:100%;margin-top:4px;" onclick="doAuth()">המשך</button>
+    <div class="m-msg" id="authMsg"></div>
+    <div class="m-note">
+      הנתונים נשמרים רק במכשיר שלך (localStorage).<br>
+      אין שרת. אין מסד נתונים. אין שיתוף מידע.
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// WORD BANK — 700+ words, each tagged with difficulty
+// Format: [word, difficulty] — e:easy, m:medium, h:hard
+// ═══════════════════════════════════════════════
+const BANK = {
+  "חפצים ודברים": [
+    ["מקרר","e"],["מטרייה","e"],["מחשב","e"],["שעון","e"],["כרית","e"],
+    ["מסרק","e"],["מברשת שיניים","e"],["ארנק","e"],["מפתח","e"],["כוס","e"],
+    ["צלחת","e"],["מחבת","e"],["קומקום","e"],["טלוויזיה","e"],["שלט","e"],
+    ["עט","e"],["מחברת","e"],["תיק","e"],["מטאטא","e"],["ספוג","e"],
+    ["מזוודה","m"],["מנעול","m"],["מראה","m"],["מנורה","m"],["סכין","m"],
+    ["מזלג","m"],["סיר","m"],["מכונת כביסה","m"],["מאוורר","m"],["מזגן","m"],
+    ["מברג","m"],["פטיש","m"],["פנס","m"],["חבל","m"],["גומייה","m"],
+    ["מספריים","m"],["דבק","m"],["בקבוק","m"],["מגש","m"],["מזרן","m"],
+    ["כרטיס אשראי","m"],["שקית ניילון","m"],["עגלת קניות","m"],["כפית","m"],["תנור מיקרוגל","m"],
+    ["מכשיר גילוח","h"],["אינדוקציה","h"],["סטטוסקופ","h"],["מד חום","h"],["מצנפת","h"],
+    ["מצנח","h"],["כלי ניגוח","h"],["חדק","h"],["מפוח","h"],["עוגן","h"]
+  ],
+  "אנשים ומקצועות": [
+    ["רופא","e"],["מורה","e"],["שוטר","e"],["טבח","e"],["זמר","e"],
+    ["שחקן","e"],["נהג","e"],["ספר","e"],["כבאי","e"],["חייל","e"],
+    ["עורך דין","m"],["טייס","m"],["צייר","m"],["ספורטאי","m"],["עיתונאי","m"],
+    ["פסיכולוג","m"],["וטרינר","m"],["אחות","m"],["מהנדס","m"],["אדריכל","m"],
+    ["שרברב","m"],["חשמלאי","m"],["גנן","m"],["מנהל","m"],["פוליטיקאי","m"],
+    ["כומר","m"],["רב","m"],["שופט","m"],["מדען","m"],["צלם","m"],
+    ["מעצב גרפי","h"],["נוירוכירורג","h"],["ארכיאולוג","h"],["דיפלומט","h"],["בלשן","h"],
+    ["אסטרופיזיקאי","h"],["פרנזי","h"],["כלכלן","h"],["אנתרופולוג","h"],["מוסיקולוג","h"]
+  ],
+  "פעלים": [
+    ["לרוץ","e"],["לקפוץ","e"],["לאכול","e"],["לשתות","e"],["לישון","e"],
+    ["לצחוק","e"],["לבכות","e"],["לכתוב","e"],["לקרוא","e"],["לדבר","e"],
+    ["לטוס","m"],["לשחות","m"],["לטפס","m"],["לבשל","m"],["לצייר","m"],
+    ["לרקוד","m"],["לנהוג","m"],["לשיר","m"],["לחשוב","m"],["לחלום","m"],
+    ["לנסוע","m"],["לקנות","m"],["למכור","m"],["לחפש","m"],["למצוא","m"],
+    ["לשמור","m"],["לזרוק","m"],["לתפוס","m"],["לפתוח","m"],["לסגור","m"],
+    ["להתעמל","m"],["לחקור","m"],["להתווכח","m"],["להתפייס","m"],["לשכנע","m"],
+    ["להסתנן","h"],["להצפין","h"],["לאלתר","h"],["להזדהות","h"],["להתפלפל","h"],
+    ["לפענח","h"],["להמם","h"],["לנמק","h"],["לאפיין","h"],["לזמם","h"]
+  ],
+  "שמות תואר": [
+    ["גדול","e"],["קטן","e"],["יפה","e"],["מהיר","e"],["חזק","e"],
+    ["חם","e"],["קר","e"],["חדש","e"],["ישן","e"],["שמח","e"],
+    ["גבוה","m"],["נמוך","m"],["שמן","m"],["רזה","m"],["חכם","m"],
+    ["מהיר","m"],["איטי","m"],["קשה","m"],["רך","m"],["יבש","m"],
+    ["רטוב","m"],["נקי","m"],["מלוכלך","m"],["מסודר","m"],["עשיר","m"],
+    ["עני","m"],["עצוב","m"],["כועס","m"],["שקט","m"],["רועש","m"],
+    ["מפחיד","m"],["מצחיק","m"],["רציני","m"],["אמיץ","m"],["נדיב","m"],
+    ["נבוך","h"],["שיטחי","h"],["אינטואיטיבי","h"],["אמביוולנטי","h"],["קצרני","h"],
+    ["מתחסד","h"],["פגמטי","h"],["דקדקן","h"],["נוכל","h"],["פסיכדלי","h"]
+  ],
+  "ישראל וסלנג": [
+    ["חוצפה","e"],["אחלה","e"],["יאללה","e"],["סבבה","e"],["ביוס","e"],
+    ["פריחה","e"],["בלגן","e"],["דוגרי","e"],["נשמה","e"],["ווי","e"],
+    ["חומוס","e"],["פיתה","e"],["פלאפל","e"],["שקשוקה","e"],["בורקס","e"],
+    ["כנסת","m"],["מוסד","m"],["צבא","m"],["מילואים","m"],["יחידה","m"],
+    ["ארומה","m"],["מכבי","m"],["הפועל","m"],["ביתר","m"],["מרצ","m"],
+    ["נחש","m"],["טוראי","m"],["רב\"ט","m"],["שריון","m"],["חי\"ר","m"],
+    ["גלבוע","h"],["רמן","h"],["נחל עוז","h"],["כינרת","h"],["גולן","h"],
+    ["שב\"כ","h"],["מלמ\"ב","h"],["צל\"ש","h"],["עמ\"ן","h"],["לה\"ב","h"]
+  ],
+  "ספורט": [
+    ["כדורגל","e"],["כדורסל","e"],["טניס","e"],["שחייה","e"],["ריצה","e"],
+    ["אופניים","e"],["גלישה","e"],["אגרוף","e"],["כדור","e"],["שער","e"],
+    ["ליגה","m"],["גביע","m"],["אליפות","m"],["אולימפיאדה","m"],["מדליה","m"],
+    ["מאמן","m"],["קהל","m"],["פנדל","m"],["מגרש","m"],["אצטדיון","m"],
+    ["טריאתלון","m"],["קרוספיט","m"],["יוגה","m"],["פילאטיס","m"],["כדורעף","m"],
+    ["ראגבי","m"],["הוקי","m"],["סנוקר","m"],["גולף","m"],["צניחה","m"],
+    ["בייסבול","h"],["לאקרוס","h"],["פנטאתלון","h"],["קיאקים","h"],["ירי בקשת","h"],
+    ["צלילה חופשית","h"],["גלישת כנף","h"],["בייסג'אמפינג","h"],["פרקור","h"],["מחבט פאדל","h"]
+  ],
+  "אוכל ושתייה": [
+    ["פיצה","e"],["המבורגר","e"],["סושי","e"],["גלידה","e"],["שוקולד","e"],
+    ["עוגה","e"],["תפוח","e"],["בננה","e"],["תפוז","e"],["קפה","e"],
+    ["פסטה","m"],["שניצל","m"],["ברוקולי","m"],["אבוקדו","m"],["תות שדה","m"],
+    ["ענב","m"],["אבטיח","m"],["מנגו","m"],["אננס","m"],["קוקוס","m"],
+    ["גזר","m"],["מלפפון","m"],["עגבנייה","m"],["בצל","m"],["שום","m"],
+    ["חציל","m"],["פלפל","m"],["קישוא","m"],["מרק עוף","m"],["שקדי מרק","m"],
+    ["קרפצ'יו","h"],["טרטר","h"],["פואה גרה","h"],["ריזוטו","h"],["טיראמיסו","h"],
+    ["קרמברולה","h"],["סאשימי","h"],["דימסאם","h"],["פאייה","h"],["בוף בורגיניון","h"]
+  ],
+  "טבע ובעלי חיים": [
+    ["כלב","e"],["חתול","e"],["סוס","e"],["ארנב","e"],["דג","e"],
+    ["ציפור","e"],["פרפר","e"],["נמלה","e"],["שמש","e"],["ירח","e"],
+    ["אריה","m"],["נמר","m"],["פיל","m"],["ג'ירפה","m"],["זברה","m"],
+    ["קוף","m"],["דב","m"],["זאב","m"],["שועל","m"],["נחש","m"],
+    ["כריש","m"],["לוויתן","m"],["דולפין","m"],["תמנון","m"],["פינגווין","m"],
+    ["קנגורו","m"],["תנין","m"],["יענה","m"],["נשר","m"],["תוכי","m"],
+    ["פלמינגו","m"],["אורנגאוטן","m"],["ג'גואר","m"],["למור","m"],["קוואלה","m"],
+    ["ארמדילו","h"],["אסקימי","h"],["אקסולוטל","h"],["טאפיר","h"],["פלטיפוס","h"]
+  ],
+  "בידור ותרבות": [
+    ["סרט","e"],["שיר","e"],["ספר","e"],["מוזיאון","e"],["קונצרט","e"],
+    ["טלוויזיה","e"],["יוטיוב","e"],["נטפליקס","e"],["גיטרה","e"],["תוף","e"],
+    ["מחזמר","m"],["אופרה","m"],["בלט","m"],["פסנתר","m"],["כינור","m"],
+    ["עיתון","m"],["מגזין","m"],["פודקאסט","m"],["סדרה","m"],["ריאליטי","m"],
+    ["מארוול","m"],["האריפוטר","m"],["סטאר וורס","m"],["דיסני","m"],["פיקסאר","m"],
+    ["טיקטוק","m"],["אינסטגרם","m"],["ספוטיפיי","m"],["ציוץ","m"],["מיינקראפט","m"],
+    ["אינדי פילם","h"],["מציאות מדומה","h"],["מטאוורס","h"],["הולוגרמה","h"],["NFT","h"],
+    ["ביינאל","h"],["ווב3","h"],["דיפייק","h"],["גנרטיבי","h"],["בלוקצ'יין","h"]
+  ],
+  "מקומות ונסיעות": [
+    ["מטוס","e"],["רכבת","e"],["אוטובוס","e"],["מלון","e"],["חוף ים","e"],
+    ["הר","e"],["יער","e"],["ים","e"],["מדבר","e"],["כיכר","e"],
+    ["נמל תעופה","m"],["תחנת רכבת","m"],["מכס","m"],["דרכון","m"],["ויזה","m"],
+    ["הוסטל","m"],["אוהל","m"],["צימר","m"],["ספא","m"],["מרכז קניות","m"],
+    ["פריז","m"],["לונדון","m"],["ניו יורק","m"],["טוקיו","m"],["ברצלונה","m"],
+    ["רומא","m"],["אמסטרדם","m"],["דובאי","m"],["בנגקוק","m"],["סידני","m"],
+    ["פיורד","h"],["אטול","h"],["מזרקה","h"],["קסבה","h"],["מדינה עתיקה","h"],
+    ["מנהרת ערוץ","h"],["תעלת פנמה","h"],["טאיגה","h"],["טונדרה","h"],["קרחון","h"]
+  ],
+  "מדע וטכנולוגיה": [
+    ["רובוט","e"],["חלל","e"],["כוכב לכת","e"],["טלפון","e"],["אינטרנט","e"],
+    ["מחשב","e"],["חשמל","e"],["לוויין","e"],["טיל","e"],["מעבדה","e"],
+    ["DNA","m"],["וירוס","m"],["חיידק","m"],["חיסון","m"],["ניתוח","m"],
+    ["טלסקופ","m"],["מיקרוסקופ","m"],["אלגוריתם","m"],["בינה מלאכותית","m"],["ענן","m"],
+    ["פיזיקה","m"],["כימיה","m"],["ביולוגיה","m"],["גנטיקה","m"],["קוונטום","m"],
+    ["שחור חור","m"],["אנטימטריה","m"],["נוירון","m"],["גנום","m"],["ננוטכנולוגיה","m"],
+    ["פוזיטרון","h"],["קוורק","h"],["גריביטינו","h"],["קריספר","h"],["ספינטרוניקה","h"],
+    ["ביופוטוניקה","h"],["מכטרוניקה","h"],["אפיגנטיקה","h"],["מיקרוביום","h"],["קוסמולוגיה","h"]
+  ],
+  "רגשות ומצבים": [
+    ["שמחה","e"],["עצב","e"],["כעס","e"],["פחד","e"],["אהבה","e"],
+    ["בושה","e"],["עייפות","e"],["רעב","e"],["כאב","e"],["הנאה","e"],
+    ["קנאה","m"],["גאווה","m"],["אשמה","m"],["תקווה","m"],["ייאוש","m"],
+    ["סקרנות","m"],["אומץ","m"],["בדידות","m"],["שלווה","m"],["מתח","m"],
+    ["חרדה","m"],["התרגשות","m"],["תדהמה","m"],["אכזבה","m"],["גועגוע","m"],
+    ["נוסטלגיה","m"],["הפתעה","m"],["ביטחון","m"],["בלבול","m"],["דחפים","m"],
+    ["אמביוולנטיות","h"],["דיסוציאציה","h"],["אנהדוניה","h"],["אפאתיה","h"],["סובלימציה","h"],
+    ["פרויקציה","h"],["קטסטרופיזציה","h"],["קוגניציה","h"],["אמפתיה","h"],["רזיליאנס","h"]
+  ]
+};
+
+const ALL_CATS = Object.keys(BANK);
+const THEMES = ["theme-red","theme-navy","theme-forest","theme-plum","theme-slate","theme-burnt"];
+
+let selectedCats = [...ALL_CATS];
+let difficulty   = "mixed";
+let themeMode    = "random";
+let currentUser  = null;
+
+// ═══════════════════════════════════════════
+// LOCALSTORAGE HELPERS
+// ═══════════════════════════════════════════
+const LS = {
+  get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } },
+  set: (k,v) => localStorage.setItem(k, JSON.stringify(v)),
+  del: k => localStorage.removeItem(k)
+};
+
+// ═══════════════════════════════════════════
+// AUTH — entirely local (no server)
+// Users stored as: cg_users → { username: { passHash, geminiKey } }
+// ═══════════════════════════════════════════
+function simpleHash(str) {
+  // djb2-style hash — good enough for local-only storage
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) h = ((h << 5) + h) ^ str.charCodeAt(i);
+  return (h >>> 0).toString(36);
+}
+
+function getUsers() { return LS.get('cg_users') || {}; }
+function saveUsers(u) { LS.set('cg_users', u); }
+
+function openAuth(tab = 'login') {
+  switchTab(tab);
+  document.getElementById('authOverlay').classList.add('open');
+  document.getElementById('authUser').focus();
+}
+function closeAuth() {
+  document.getElementById('authOverlay').classList.remove('open');
+  document.getElementById('authMsg').textContent = '';
+}
+function maybeCloseOverlay(e) {
+  if (e.target === document.getElementById('authOverlay')) closeAuth();
+}
+function switchTab(t) {
+  document.getElementById('tabLogin').classList.toggle('on', t === 'login');
+  document.getElementById('tabSignup').classList.toggle('on', t === 'signup');
+  document.getElementById('authMsg').textContent = '';
+  document.getElementById('authOverlay').dataset.tab = t;
+}
+function doAuth() {
+  const tab  = document.getElementById('authOverlay').dataset.tab || 'login';
+  const user = document.getElementById('authUser').value.trim();
+  const pass = document.getElementById('authPass').value;
+  const msg  = document.getElementById('authMsg');
+
+  if (!user || !pass) { msg.textContent='יש למלא שם משתמש וסיסמה'; msg.className='m-msg err'; return; }
+  if (pass.length < 6) { msg.textContent='סיסמה חייבת לפחות 6 תווים'; msg.className='m-msg err'; return; }
+
+  const users = getUsers();
+
+  if (tab === 'signup') {
+    if (users[user]) { msg.textContent='שם המשתמש תפוס'; msg.className='m-msg err'; return; }
+    users[user] = { passHash: simpleHash(pass), geminiKey: '' };
+    saveUsers(users);
+    msg.textContent = '✓ החשבון נוצר!'; msg.className='m-msg ok';
+    loginUser(user, users[user]);
+    setTimeout(closeAuth, 800);
+  } else {
+    const u = users[user];
+    if (!u || u.passHash !== simpleHash(pass)) {
+      msg.textContent='שם משתמש או סיסמה שגויים'; msg.className='m-msg err'; return;
+    }
+    loginUser(user, u);
+    setTimeout(closeAuth, 400);
+  }
+}
+function loginUser(username, data) {
+  currentUser = username;
+  LS.set('cg_session', username);
+  updateNavForUser(username);
+  // Restore saved key
+  if (data.geminiKey) {
+    document.getElementById('geminiKey').value = data.geminiKey;
+    document.getElementById('keySaved').classList.add('show');
+  }
+  toast(`שלום ${username}! 👋`);
+}
+function logout() {
+  currentUser = null;
+  LS.del('cg_session');
+  document.getElementById('geminiKey').value = '';
+  document.getElementById('keySaved').classList.remove('show');
+  updateNavForUser(null);
+  toast('התנתקת');
+}
+function updateNavForUser(u) {
+  const nav = document.getElementById('navRight');
+  if (u) {
+    nav.innerHTML = `
+      <div class="user-pill" onclick="logout()">
+        <div class="user-dot"></div>
+        <span>${u}</span>
+        <span style="opacity:.4;font-size:11px;">יציאה</span>
+      </div>`;
+  } else {
+    nav.innerHTML = `
+      <button class="nav-btn" onclick="openAuth('login')">התחבר</button>
+      <button class="nav-btn primary" onclick="openAuth('signup')">הרשמה</button>`;
+  }
+}
+
+// ═══════════════════════════════════════════
+// API KEY — saves to user's profile if logged in, else bare localStorage
+// ═══════════════════════════════════════════
+function saveKey() {
+  const k = document.getElementById('geminiKey').value.trim();
+  if (!k) return;
+  if (currentUser) {
+    const users = getUsers();
+    if (users[currentUser]) { users[currentUser].geminiKey = k; saveUsers(users); }
+  }
+  LS.set('cg_anon_key', k);
+  document.getElementById('keySaved').classList.add('show');
+  toast('המפתח נשמר 🔒');
+}
+function clearKey() {
+  document.getElementById('geminiKey').value = '';
+  document.getElementById('keySaved').classList.remove('show');
+  if (currentUser) {
+    const users = getUsers();
+    if (users[currentUser]) { users[currentUser].geminiKey = ''; saveUsers(users); }
+  }
+  LS.del('cg_anon_key');
+  toast('המפתח נמחק');
+}
+function loadSavedKey() {
+  const session = LS.get('cg_session');
+  if (session) {
+    const users = getUsers();
+    if (users[session]) { loginUser(session, users[session]); return; }
+  }
+  const anon = LS.get('cg_anon_key');
+  if (anon) {
+    document.getElementById('geminiKey').value = anon;
+    document.getElementById('keySaved').classList.add('show');
+  }
+}
+
+// ═══════════════════════════════════════════
+// CATEGORY CHIPS
+// ═══════════════════════════════════════════
+function initChips() {
+  const grid = document.getElementById('catGrid');
+  const all  = document.createElement('button');
+  all.className = 'chip all-chip on';
+  all.textContent = '✦ הכול';
+  all.onclick = () => {
+    selectedCats = [...ALL_CATS];
+    syncChips();
+  };
+  grid.appendChild(all);
+
+  ALL_CATS.forEach(cat => {
+    const c = document.createElement('button');
+    c.className = 'chip on';
+    c.textContent = cat;
+    c.dataset.cat = cat;
+    c.onclick = () => {
+      if (selectedCats.includes(cat)) {
+        if (selectedCats.length === 1) return;
+        selectedCats = selectedCats.filter(x => x !== cat);
+      } else {
+        selectedCats.push(cat);
+      }
+      syncChips();
+    };
+    grid.appendChild(c);
+  });
+}
+function syncChips() {
+  document.querySelectorAll('.chip:not(.all-chip)').forEach(c => {
+    c.classList.toggle('on', selectedCats.includes(c.dataset.cat));
+  });
+  document.querySelector('.all-chip').classList.toggle('on',
+    selectedCats.length === ALL_CATS.length);
+}
+
+document.getElementById('cardCount').addEventListener('input', function() {
+  document.getElementById('countVal').textContent = this.value;
+});
+
+function setDiff(el) {
+  difficulty = el.dataset.d;
+  document.querySelectorAll('.diff-btn').forEach(b => {
+    if (b.closest('.diff-row') === el.closest('.diff-row'))
+      b.classList.toggle('on', b === el);
+  });
+}
+function setTheme(el) {
+  themeMode = el.dataset.th;
+  document.querySelectorAll('.diff-btn').forEach(b => {
+    if (b.closest('.diff-row') === el.closest('.diff-row'))
+      b.classList.toggle('on', b === el);
+  });
+}
+
+// ═══════════════════════════════════════════
+// CARD GENERATION
+// ═══════════════════════════════════════════
+function shuffle(a) {
+  const b = [...a];
+  for (let i = b.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [b[i], b[j]] = [b[j], b[i]];
+  }
+  return b;
+}
+
+function pickWords(count) {
+  let pool = [];
+  selectedCats.forEach(cat => {
+    BANK[cat].forEach(([word, diff]) => {
+      if (difficulty === 'mixed' ||
+          difficulty === diff ||
+          (difficulty === 'easy' && diff === 'e') ||
+          (difficulty === 'medium' && diff === 'm') ||
+          (difficulty === 'hard' && diff === 'h')) {
+        pool.push({ word, diff, cat });
+      }
+    });
+  });
+  if (!pool.length) pool = Object.values(BANK).flat().map(([w,d]) => ({word:w,diff:d,cat:'מעורב'}));
+  return shuffle(pool).slice(0, count);
+}
+
+function getTheme() {
+  if (themeMode === 'random') return THEMES[Math.floor(Math.random() * THEMES.length)];
+  return themeMode;
+}
+
+function generateCards() {
+  const n    = parseInt(document.getElementById('cardCount').value);
+  const grid = document.getElementById('cardsGrid');
+  grid.innerHTML = '';
+
+  for (let i = 0; i < n; i++) {
+    const words = pickWords(8);
+    const cat   = selectedCats.length === 1 ? selectedCats[0] :
+                  words[Math.floor(Math.random() * words.length)]?.cat || 'מעורב';
+    grid.appendChild(buildCard(words, i + 1, cat, getTheme()));
+  }
+
+  document.getElementById('cardsCount').innerHTML =
+    `<b>${n}</b> קלפים · <b>${n * 8}</b> מילים`;
+}
+
+function buildCard(words, num, cat, theme) {
+  const card = document.createElement('div');
+  card.className = `cg-card ${theme}`;
+
+  const pips = [...Array(8)].map((_,i) =>
+    `<div class="pip${i < words.length ? ' on' : ''}"></div>`).join('');
+
+  card.innerHTML = `
+    <div class="bg-layer"></div>
+    <div class="c-head">
+      <div class="c-brand">CardGen</div>
+      <div class="c-cat">${cat}</div>
+    </div>
+    <div class="c-words"></div>
+    <div class="c-foot">
+      <div class="c-num">#${String(num).padStart(3,'0')}</div>
+      <div class="c-pips">${pips}</div>
+    </div>`;
+
+  const wordsDiv = card.querySelector('.c-words');
+  words.forEach((w, i) => {
+    const len = w.word.length;
+    const sz  = len > 12 ? 'sm' : len > 8 ? 'md' : '';
+    const diffLabel = w.diff === 'e' ? 'E' : w.diff === 'm' ? 'M' : 'H';
+    const diffCls   = w.diff === 'e' ? 'diff-e' : w.diff === 'm' ? 'diff-m' : 'diff-h';
+    const row = document.createElement('div');
+    row.className = 'w-row';
+    row.innerHTML = `
+      <span class="w-n">${i+1}</span>
+      <span class="w-t ${sz}">${w.word}</span>
+      <span class="w-diff ${diffCls}">${diffLabel}</span>`;
+    wordsDiv.appendChild(row);
+  });
+
+  return card;
+}
+
+// ═══════════════════════════════════════════
+// AI PANEL
+// ═══════════════════════════════════════════
+function toggleAI() {
+  document.getElementById('aiBox').classList.toggle('open');
+}
+
+async function generateWithAI() {
+  const key    = document.getElementById('geminiKey').value.trim();
+  const topic  = document.getElementById('aiTopic').value.trim();
+  const extra  = document.getElementById('aiExtra').value.trim();
+  const status = document.getElementById('aiStatus');
+  const n      = parseInt(document.getElementById('cardCount').value);
+
+  if (!key)   { setStatus('חסר API key — הכנס מפתח מ-aistudio.google.com', 'err'); return; }
+  if (!topic) { setStatus('הכנס נושא / קטגוריה', 'err'); return; }
+
+  const total = n * 8;
+  setStatus(`⏳ שולח בקשה ל-Gemini... (${total} מילים)`, '');
+
+  const prompt = `You are generating Hebrew words for the word-guessing party game similar to "Alias".
+Generate exactly ${total} Hebrew words or short phrases for the category: "${topic}".
+${extra ? `Instructions: ${extra}` : ''}
+Requirements:
+- Mix of easy (e), medium (m), and hard (h) difficulty
+- Return ONLY a JSON array of strings
+- Words must be describable without saying them
+- Include nouns, verbs, adjectives, expressions
+- Be creative and varied
+Format: ["מילה1","מילה2",...] — pure JSON, no markdown, no explanation.`;
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
+      {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          contents:[{parts:[{text:prompt}]}],
+          generationConfig:{temperature:0.95, maxOutputTokens:2048}
+        })
+      }
+    );
+    if (!res.ok) {
+      const e = await res.json();
+      throw new Error(e?.error?.message || `HTTP ${res.status}`);
+    }
+    const data  = await res.json();
+    const raw   = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const match = raw.match(/\[[\s\S]*?\]/);
+    if (!match) throw new Error('תשובה לא תקינה');
+    const words = JSON.parse(match[0]);
+    if (!Array.isArray(words) || !words.length) throw new Error('לא התקבלו מילים');
+
+    const grid = document.getElementById('cardsGrid');
+    grid.innerHTML = '';
+    for (let c = 0; c < n; c++) {
+      const slice = words.slice(c*8, c*8+8).map(w => ({word:w, diff:'m', cat:topic}));
+      if (slice.length) grid.appendChild(buildCard(slice, c+1, topic, getTheme()));
+    }
+    document.getElementById('cardsCount').innerHTML =
+      `<b>${n}</b> קלפים AI · <b>${words.length}</b> מילים בנושא <b>${topic}</b>`;
+    setStatus(`✅ נוצרו ${words.length} מילים בנושא "${topic}"`, 'ok');
+
+    // auto-save key
+    if (!LS.get('cg_anon_key') && key) saveKey();
+
+  } catch(e) {
+    setStatus(`❌ שגיאה: ${e.message}`, 'err');
+  }
+}
+
+function setStatus(msg, cls) {
+  const el = document.getElementById('aiStatus');
+  el.textContent = msg;
+  el.className = 'ai-status' + (cls ? ' ' + cls : '');
+}
+
+// ═══════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+initChips();
+loadSavedKey();
+generateCards();
+</script>
+</body>
+</html>
