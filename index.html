@@ -1069,7 +1069,7 @@ Format: [{"word":"מילה1","diff":"e"},{"word":"מילה2","diff":"m"},...] �
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify({
           contents:[{parts:[{text:prompt}]}],
-          generationConfig:{temperature:0.95, maxOutputTokens:4096, response_mime_type: "application/json"}
+          generationConfig:{temperature:0.95, maxOutputTokens:16384, response_mime_type: "application/json"}
         })
       }
     );
