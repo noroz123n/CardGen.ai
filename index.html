@@ -1119,7 +1119,8 @@ Format: ["מילה1","מילה2",...] — pure JSON, no markdown, no explanation
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify({
           contents:[{parts:[{text:prompt}]}],
-          generationConfig:{temperature:0.95, maxOutputTokens:2048}
+          generationConfig:{temperature:0.95, maxOutputTokens:4096},
+          responseMimeType: "application/json"
         })
       }
     );
